@@ -63,7 +63,7 @@ jobs:
       # Cache pip per matrix cell (key includes OS, Python, dependency-set)
       # -----------------------------------------------------------------------
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: cd-pip-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.dependency-set }}-${{ hashFiles('requirements/base.txt', 'requirements/min.txt', 'requirements/pinned.txt') }}
