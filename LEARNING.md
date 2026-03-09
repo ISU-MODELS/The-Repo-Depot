@@ -9,7 +9,7 @@ This page is an **interactive overview** for learning all principles used in thi
 - **Table of contents** — Click any item to jump to that section.
 - **Bold links** — Point to the exact file (and sometimes the idea) where the concept is implemented.
 - **“See in repo”** — Links to the actual workflow or config file so you can read the code and comments.
-- **Suggested order** — Read [Core idea: what runs and when](#core-idea-what-runs-and-when) first, then [Linting](#1-linting), [CI](#2-continuous-integration-ci), and [CD](#3-continuous-deployment--matrix-testing-cd). Use [Speeding up workflows](#speeding-up-workflows) and [Progress reporting](#progress-reporting-for-developers) when you care about performance and feedback.
+- **Suggested order** — Read [Core idea: what runs and when](#core-idea-what-runs-and-when) first, then [Linting](#1-linting), [CI](#2-continuous-integration-ci), and [CD](#3-continuous-deployment-matrix-testing-cd). Use [Speeding up workflows](#speeding-up-workflows) and [Progress reporting](#progress-reporting-for-developers) when you care about performance and feedback.
 
 ---
 
@@ -21,7 +21,7 @@ This page is an **interactive overview** for learning all principles used in thi
 4. [Principles in detail](#principles-in-detail)
    - [1. Linting](#1-linting)
    - [2. Continuous Integration (CI)](#2-continuous-integration-ci)
-   - [3. Continuous Deployment / matrix testing (CD)](#3-continuous-deployment--matrix-testing-cd)
+   - [3. Continuous Deployment / matrix testing (CD)](#3-continuous-deployment-matrix-testing-cd)
    - [4. Security](#4-security)
    - [5. Build](#5-build)
    - [6. Pre-commit](#6-pre-commit)
