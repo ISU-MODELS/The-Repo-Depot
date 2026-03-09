@@ -1,0 +1,11 @@
+# Pinned versions for reproducible CD (matrix: dependency-set = pinned)
+# -----------------------------------------------------------------------------
+# Exact versions ensure identical environments across the full CD matrix (Python
+# version × OS × dependency-set). Update these when you intentionally upgrade
+# a dependency; keep in sync with the versions used in CI for consistency.
+# Entries: pytest, pytest-cov, ruff, mypy (same as base.txt but pinned).
+# -----------------------------------------------------------------------------
+pytest==7.4.3
+pytest-cov==4.1.0
+ruff==0.4.4
+mypy==1.8.0

@@ -1,0 +1,14 @@
+# Shared dependencies for local dev and CI
+# -----------------------------------------------------------------------------
+# List of packages used for development and CI. Install with:
+#   pip install -r requirements/base.txt
+# Entries:
+#   pytest       - test runner
+#   pytest-cov  - coverage plugin for pytest (reports line/branch coverage)
+#   ruff        - linter and formatter (used in lint workflow and pre-commit)
+#   mypy        - static type checker (used in CI typecheck job)
+# -----------------------------------------------------------------------------
+pytest>=7.0
+pytest-cov>=4.0
+ruff>=0.1.0
+mypy>=1.0

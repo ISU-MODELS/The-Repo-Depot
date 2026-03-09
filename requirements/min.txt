@@ -1,0 +1,6 @@
+# Minimum versions for compatibility (matrix: dependency-set = min)
+# -----------------------------------------------------------------------------
+# Used by the CD workflow when matrix.dependency-set is "min". Tests that the
+# codebase works with the lowest supported versions of each dependency.
+# -----------------------------------------------------------------------------
+-r base.txt
