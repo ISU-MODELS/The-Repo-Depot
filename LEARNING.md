@@ -67,9 +67,9 @@ Each workflow runs only when files in certain paths change. For example, the **L
 When you push again to the same branch before the previous run finishes, we **cancel** the previous run so only the latest commit is validated.
 
 - **Where it’s set:** In every workflow file, under `concurrency:` (e.g. [lint.yml concurrency](.github/workflows/lint.yml), [ci.yml concurrency](.github/workflows/ci.yml)).
-- **Pattern:** `group: <workflow-name>-${{ github.ref }}` and `cancel-in-progress: true`. **Exception:** [CD uses `cancel-in-progress: false`](.github/workflows/cd.yml) so each run completes all matrix jobs (every Python × OS × dependency combination); otherwise a new push would cancel the run after only one or a few jobs.
+- **Pattern:** `group: <workflow-name>-${{ github.ref }}` and `cancel-in-progress: true`. **Exception:** [CD has no concurrency block](.github/workflows/cd.yml) so each run completes all matrix jobs; with a group, a newer push can cancel in-progress jobs ("higher priority waiting request").
 
-**Effect:** You don’t wait for an obsolete run (Lint/CI), and you see status for the latest push. For CD, every deployment combination is tested even if you push again.
+**Effect:** You don’t wait for an obsolete run (Lint/CI), and you see status for the latest push. For CD, every deployment combination is tested and no run cancels another.
 
 ### 3. Caching — reuse dependencies and tool data
 

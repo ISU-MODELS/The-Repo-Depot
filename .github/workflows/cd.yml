@@ -3,10 +3,9 @@
 # =============================================================================
 # Purpose: Check that the codebase works across many environments (Python
 # versions, OS, min vs pinned deps). Path filters limit runs to code/config
-# changes. We do NOT cancel in-progress CD runs so that every matrix cell
-# (each deployment combination) is tested; otherwise a new push would cancel
-# the run and only one or a few jobs would complete. Optional gpu-test job
-# is disabled by default; set if: true when you have a GPU runner.
+# changes. We do NOT use concurrency here so that every matrix run completes
+# all jobs; with a concurrency group, a newer push can cancel in-progress jobs
+# ("higher priority waiting request"). Optional gpu-test job is disabled by default.
 # =============================================================================
 
 name: CD
@@ -38,9 +37,6 @@ jobs:
   # ---------------------------------------------------------------------------
   matrix-test:
     runs-on: ${{ matrix.os }}
-    concurrency:
-      group: cd-${{ github.ref }}
-      cancel-in-progress: false  # Let each run complete all matrix jobs; do not cancel on new push
 
     strategy:
       fail-fast: false
@@ -95,9 +91,6 @@ jobs:
   gpu-test:
     if: false
     runs-on: [self-hosted, gpu]
-    concurrency:
-      group: cd-${{ github.ref }}
-      cancel-in-progress: false  # Match matrix-test: let run complete
 
     steps:
       - name: Checkout
