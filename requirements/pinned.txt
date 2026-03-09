@@ -5,7 +5,7 @@
 # a dependency; keep in sync with the versions used in CI for consistency.
 # Entries: pytest, pytest-cov, ruff, mypy (same as base.txt but pinned).
 # -----------------------------------------------------------------------------
-pytest==7.4.3
+pytest==8.4.2
 pytest-cov==4.1.0
 ruff==0.4.4
 mypy==1.8.0
