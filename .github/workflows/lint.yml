@@ -66,13 +66,13 @@ jobs:
           echo "Resolved lint level: $(grep '^level=' $GITHUB_OUTPUT | cut -d= -f2-)"
 
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: lint-pip-${{ hashFiles('requirements/base.txt') }}
 
       - name: Cache Ruff
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .ruff_cache
           key: lint-ruff-${{ hashFiles('pyproject.toml', '**/*.py') }}
