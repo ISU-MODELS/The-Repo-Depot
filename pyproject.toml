@@ -32,7 +32,7 @@ min = [
 ]
 # pinned: exact versions for reproducible builds (used in CD matrix "pinned")
 pinned = [
-    "pytest==7.4.3",
+    "pytest==8.4.2",
     "pytest-cov==4.1.0",
     "ruff==0.4.4",
     "mypy==1.8.0",
