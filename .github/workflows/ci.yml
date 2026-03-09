@@ -1,0 +1,102 @@
+# =============================================================================
+# CI workflow: tests with coverage, type checking (mypy)
+# =============================================================================
+# Purpose: On every relevant push/PR, run tests (pytest-cov) and mypy so the
+# main branch stays green and type-safe. Path filters limit runs to Python,
+# requirements, pyproject, tests; concurrency cancels outdated runs. We use
+# pip cache and write job summary + log grouping for progress reporting.
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "**.py"
+      - "requirements/**"
+      - "pyproject.toml"
+      - "tests/**"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "**.py"
+      - "requirements/**"
+      - "pyproject.toml"
+      - "tests/**"
+      - ".github/workflows/ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ci-pip-${{ hashFiles('requirements/base.txt') }}
+
+      - name: Install dependencies
+        run: pip install -r requirements/base.txt
+
+      # -----------------------------------------------------------------------
+      # Run tests with coverage; upload artifact; add to job summary
+      # -----------------------------------------------------------------------
+      - name: Run tests with coverage
+        run: |
+          echo "::group::Pytest output"
+          pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml
+          echo "::endgroup::"
+          echo "## Test results" >> $GITHUB_STEP_SUMMARY
+          echo "Pytest with coverage completed." >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  typecheck:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ci-pip-${{ hashFiles('requirements/base.txt') }}
+
+      - name: Install dependencies
+        run: pip install -r requirements/base.txt
+
+      - name: Run mypy
+        run: |
+          echo "::group::Mypy output"
+          mypy src/
+          echo "::endgroup::"
+          echo "## Type check (mypy)" >> $GITHUB_STEP_SUMMARY
+          echo "Mypy completed." >> $GITHUB_STEP_SUMMARY

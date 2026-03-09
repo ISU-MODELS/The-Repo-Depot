@@ -1,0 +1,83 @@
+# =============================================================================
+# Lint workflow: Ruff lint and format checks (no autocorrect)
+# =============================================================================
+# Purpose: Enforce code style and lint rules. The workflow fails when
+# violations are found; developers fix them locally. We use path filters so
+# this runs only when Python/Ruff-related files change, and concurrency so
+# outdated runs are cancelled. Caching speeds up pip and Ruff.
+# =============================================================================
+
+name: Lint
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - ".ruff.toml"
+      - ".github/workflows/lint.yml"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - ".ruff.toml"
+      - ".github/workflows/lint.yml"
+
+# -----------------------------------------------------------------------------
+# Path filters: run only when relevant files change (**.py, Ruff config, workflow)
+# -----------------------------------------------------------------------------
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: lint-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # -----------------------------------------------------------------------
+      # Cache: pip and Ruff cache for faster repeat runs
+      # Keys use hashes of requirements/base.txt and of pyproject.toml + **/*.py
+      # -----------------------------------------------------------------------
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: lint-pip-${{ hashFiles('requirements/base.txt') }}
+
+      - name: Cache Ruff
+        uses: actions/cache@v4
+        with:
+          path: .ruff_cache
+          key: lint-ruff-${{ hashFiles('pyproject.toml', '**/*.py') }}
+
+      - name: Install dependencies
+        run: pip install -r requirements/base.txt
+
+      # -----------------------------------------------------------------------
+      # Ruff check: report-only, no fix; GitHub format for PR annotations
+      # -----------------------------------------------------------------------
+      - name: Run Ruff check
+        id: ruff-check
+        run: |
+          ruff check . --no-fix --output-format=github
+          echo "## Ruff check" >> $GITHUB_STEP_SUMMARY
+          echo "Lint completed (no-fix mode)." >> $GITHUB_STEP_SUMMARY
+
+      # -----------------------------------------------------------------------
+      # Ruff format check: fail if formatting would change
+      # -----------------------------------------------------------------------
+      - name: Run Ruff format check
+        run: |
+          ruff format --check .
+          echo "## Ruff format check" >> $GITHUB_STEP_SUMMARY
+          echo "Format check passed." >> $GITHUB_STEP_SUMMARY

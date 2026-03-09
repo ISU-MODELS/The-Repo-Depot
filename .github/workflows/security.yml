@@ -1,0 +1,68 @@
+# =============================================================================
+# Security workflow: dependency audit (pip-audit) and secret scanning (Gitleaks)
+# =============================================================================
+# Purpose: Detect known vulnerabilities in dependencies and secrets committed
+# in the repo. Path filters run only when requirements or Python/workflow
+# change; concurrency cancels outdated runs. Job summary shows audit output.
+# =============================================================================
+
+name: Security
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "requirements/**"
+      - "**.py"
+      - ".github/workflows/security.yml"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "requirements/**"
+      - "**.py"
+      - ".github/workflows/security.yml"
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: security-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements/base.txt
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit
+        run: |
+          pip-audit --desc
+          echo "## Dependency audit (pip-audit)" >> $GITHUB_STEP_SUMMARY
+          pip-audit --desc 2>&1 | head -50 >> $GITHUB_STEP_SUMMARY
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: security-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

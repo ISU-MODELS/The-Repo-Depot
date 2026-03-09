@@ -1,0 +1,60 @@
+# =============================================================================
+# Build workflow: verify package builds (sdist + wheel)
+# =============================================================================
+# Purpose: Ensure the package builds correctly from pyproject.toml and src/
+# using PEP 517 (python -m build). Path filters run only when src/ or
+# pyproject.toml or workflow change; concurrency cancels outdated runs.
+# Job summary and log grouping improve progress reporting.
+# =============================================================================
+
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - ".github/workflows/build.yml"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - ".github/workflows/build.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: build-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build
+        run: pip install build
+
+      - name: Build package
+        run: |
+          echo "::group::Build output"
+          python -m build
+          echo "::endgroup::"
+          echo "## Build result" >> $GITHUB_STEP_SUMMARY
+          echo "sdist and wheel built successfully." >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          ls -la dist/ >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/

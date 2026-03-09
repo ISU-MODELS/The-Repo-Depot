@@ -1,0 +1,112 @@
+# =============================================================================
+# CD workflow: matrix testing (Python × OS × dependency-set)
+# =============================================================================
+# Purpose: Check that the codebase works across many environments (Python
+# versions, OS, min vs pinned deps). Path filters limit runs to code/config
+# changes; concurrency cancels outdated runs. Optional gpu-test job is
+# disabled by default; set if: true when you have a GPU runner.
+# =============================================================================
+
+name: CD
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "**.py"
+      - "requirements/**"
+      - "pyproject.toml"
+      - "tests/**"
+      - "src/**"
+      - ".github/workflows/cd.yml"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "**.py"
+      - "requirements/**"
+      - "pyproject.toml"
+      - "tests/**"
+      - "src/**"
+      - ".github/workflows/cd.yml"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Matrix: Python × OS × dependency-set (min from min.txt, pinned from pinned.txt)
+  # Use matrix.exclude to skip known-bad combinations.
+  # ---------------------------------------------------------------------------
+  matrix-test:
+    runs-on: ${{ matrix.os }}
+    concurrency:
+      group: cd-${{ github.ref }}
+      cancel-in-progress: true
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        dependency-set: [min, pinned]
+        # To skip known-bad combinations, uncomment and add entries:
+        # exclude:
+        #   - python-version: "3.9"
+        #     os: windows-latest
+        #     dependency-set: min
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # -----------------------------------------------------------------------
+      # Cache pip per matrix cell (key includes OS, Python, dependency-set)
+      # -----------------------------------------------------------------------
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: cd-pip-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.dependency-set }}-${{ hashFiles('requirements/base.txt', 'requirements/min.txt', 'requirements/pinned.txt') }}
+
+      - name: Install dependencies
+        run: pip install -r requirements/${{ matrix.dependency-set }}.txt
+
+      - name: Run pytest
+        run: |
+          echo "::group::Pytest (Py ${{ matrix.python-version }} / ${{ matrix.os }} / ${{ matrix.dependency-set }})"
+          pytest tests/ -v
+          echo "::endgroup::"
+
+      # -----------------------------------------------------------------------
+      # Deployment check: import package + optional smoke (e.g. minimal CLI run)
+      # -----------------------------------------------------------------------
+      - name: Deployment check
+        run: |
+          pip install -e .
+          python -c "import example_package; print('Import OK')"
+
+  # ---------------------------------------------------------------------------
+  # Optional GPU job: enable when you have a self-hosted GPU runner
+  # ---------------------------------------------------------------------------
+  gpu-test:
+    if: false
+    runs-on: [self-hosted, gpu]
+    concurrency:
+      group: cd-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install and test
+        run: |
+          pip install -r requirements/base.txt
+          pytest tests/ -v
