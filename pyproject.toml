@@ -86,11 +86,16 @@ ignore = []
 max-statements = 25
 
 # -----------------------------------------------------------------------------
-# Pytest: test discovery and paths
+# Pytest: test discovery, paths, and markers (for configurable test profiles)
 # -----------------------------------------------------------------------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+# Markers: use -m unit, -m integration, or run all (no -m). See config/test-profile.txt and CI workflow.
+markers = [
+    "unit: fast, isolated tests (no I/O or external deps). Default for quick CI.",
+    "integration: tests that import the package, run code paths, or touch multiple units.",
+]
 # pythonpath: prepend src/ so "import example_package" works when running pytest from repo root.
 
 # -----------------------------------------------------------------------------

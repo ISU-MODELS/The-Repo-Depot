@@ -2,9 +2,9 @@
 # Lint workflow: Ruff lint and format checks (no autocorrect)
 # =============================================================================
 # Purpose: Enforce code style and lint rules. The workflow fails when
-# violations are found; developers fix them locally. We use path filters so
-# this runs only when Python/Ruff-related files change, and concurrency so
-# outdated runs are cancelled. Caching speeds up pip and Ruff.
+# violations are found; developers fix them locally. Lint level is
+# configurable via config/lint-level.txt (minimal | standard | strict) or
+# via manual run "Lint level" input. Path filters and concurrency as before.
 # =============================================================================
 
 name: Lint
@@ -16,6 +16,7 @@ on:
       - "**.py"
       - "pyproject.toml"
       - ".ruff.toml"
+      - "config/lint-level.txt"
       - ".github/workflows/lint.yml"
   pull_request:
     branches: [main, master]
@@ -23,11 +24,20 @@ on:
       - "**.py"
       - "pyproject.toml"
       - ".ruff.toml"
+      - "config/lint-level.txt"
       - ".github/workflows/lint.yml"
+  workflow_dispatch:
+    inputs:
+      lint_level:
+        description: "Lint level (blank = use config/lint-level.txt)"
+        required: false
+        default: "standard"
+        type: choice
+        options:
+          - minimal
+          - standard
+          - strict
 
-# -----------------------------------------------------------------------------
-# Path filters: run only when relevant files change (**.py, Ruff config, workflow)
-# -----------------------------------------------------------------------------
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -44,10 +54,17 @@ jobs:
         with:
           python-version: "3.11"
 
-      # -----------------------------------------------------------------------
-      # Cache: pip and Ruff cache for faster repeat runs
-      # Keys use hashes of requirements/base.txt and of pyproject.toml + **/*.py
-      # -----------------------------------------------------------------------
+      - name: Resolve lint level
+        id: lint-level
+        run: |
+          if [ -n "${{ github.event.inputs.lint_level }}" ]; then
+            echo "level=${{ github.event.inputs.lint_level }}" >> $GITHUB_OUTPUT
+          else
+            LEVEL=$(cat config/lint-level.txt 2>/dev/null | head -1 | tr -d '[:space:]' || true)
+            echo "level=${LEVEL:-standard}" >> $GITHUB_OUTPUT
+          fi
+          echo "Resolved lint level: $(grep '^level=' $GITHUB_OUTPUT | cut -d= -f2-)"
+
       - name: Cache pip
         uses: actions/cache@v4
         with:
@@ -64,18 +81,25 @@ jobs:
         run: pip install -r requirements/base.txt
 
       # -----------------------------------------------------------------------
-      # Ruff check: report-only, no fix; GitHub format for PR annotations
+      # Ruff check: level from config or input. minimal=E9,F; standard=pyproject; strict=standard+PLR,PLE,TRY
       # -----------------------------------------------------------------------
       - name: Run Ruff check
         id: ruff-check
         run: |
-          ruff check . --no-fix --output-format=github
-          echo "## Ruff check" >> $GITHUB_STEP_SUMMARY
+          LEVEL="${{ steps.lint-level.outputs.level }}"
+          case "$LEVEL" in
+            minimal)  RUFF_SELECT="E9,F" ; RUFF_IGNORE="" ;;
+            strict)   RUFF_SELECT="E4,E7,E9,F,N8,B018,B019,ERA001,PLR0915,PLR,PLE,TRY" ; RUFF_IGNORE="" ;;
+            *)        RUFF_SELECT="" ; RUFF_IGNORE="" ;;  # standard: use pyproject.toml
+          esac
+          if [ -n "$RUFF_SELECT" ]; then
+            ruff check . --no-fix --output-format=github --select "$RUFF_SELECT" ${RUFF_IGNORE:+--ignore "$RUFF_IGNORE"}
+          else
+            ruff check . --no-fix --output-format=github
+          fi
+          echo "## Ruff check ($LEVEL)" >> $GITHUB_STEP_SUMMARY
           echo "Lint completed (no-fix mode)." >> $GITHUB_STEP_SUMMARY
 
-      # -----------------------------------------------------------------------
-      # Ruff format check: fail if formatting would change
-      # -----------------------------------------------------------------------
       - name: Run Ruff format check
         run: |
           ruff format --check .

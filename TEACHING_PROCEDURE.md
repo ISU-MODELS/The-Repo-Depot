@@ -10,6 +10,7 @@ This document gives you a **step-by-step procedure** to teach students how this 
 - Students understand where the rule is configured (`pyproject.toml`) and how to fix or relax it.
 - Optionally, students see **other Ruff rules** (unused import, naming, etc.) in a second stage.
 - Students can run the same checks locally and see them on GitHub Actions.
+- Students can change **which lint rules** or **which tests** run without editing YAML (using `config/lint-level.txt` and `config/test-profile.txt`).
 
 ---
 

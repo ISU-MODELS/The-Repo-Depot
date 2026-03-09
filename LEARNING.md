@@ -137,6 +137,8 @@ Below, each principle is explained and linked to the exact files and sections th
 | Naming (e.g. snake_case) | [pyproject.toml — select N8](pyproject.toml) | Same as above |
 | Redundant code (unused import, commented code, etc.) | [pyproject.toml — F401, ERA001, B018, B019, etc.](pyproject.toml) | Same as above |
 
+**Configurable lint level:** Edit [config/lint-level.txt](config/lint-level.txt) (first line: `minimal` \| `standard` \| `strict`) to change which rules the Lint workflow runs — no YAML edit. Or run the workflow manually and choose **Lint level**. See [config/README.md](config/README.md).
+
 **Example of code that fails lint (for teaching):** [module_with_issues.py](src/example_package/module_with_issues.py) — intentionally violates **PLR0915** (too many statements). See [TEACHING_PROCEDURE.md](TEACHING_PROCEDURE.md) for a step-by-step lesson. Optional file [module_other_violations.py](src/example_package/module_other_violations.py) demonstrates F401, N802, N806, ERA001, B018 (excluded from Ruff by default).
 
 **Example of clean code:** [logic.py](src/example_package/logic.py).
@@ -158,8 +160,11 @@ Below, each principle is explained and linked to the exact files and sections th
 | Test discovery and paths | [pyproject.toml — tool.pytest.ini_options](pyproject.toml) | [ci.yml — test job](.github/workflows/ci.yml) |
 | Coverage (source and reports) | [ci.yml — Run tests with coverage](.github/workflows/ci.yml) | Same (term + XML; artifact upload) |
 | Type checking | [pyproject.toml — tool.mypy](pyproject.toml) | [ci.yml — typecheck job](.github/workflows/ci.yml) |
+| Test markers (unit vs integration) | [pyproject.toml — markers](pyproject.toml) | [ci.yml — pytest -m](.github/workflows/ci.yml) per profile |
 
-**Example tests:** [tests/test_logic.py](tests/test_logic.py) — two unit tests and a short comment on how to add more.
+**Configurable test profile:** Edit [config/test-profile.txt](config/test-profile.txt) (first line: `unit` \| `integration` \| `all`) to change which tests the CI workflow runs. Or run the workflow manually and choose **Test profile**. See [config/README.md](config/README.md).
+
+**Example tests:** [tests/test_logic.py](tests/test_logic.py) (unit), [tests/test_integration.py](tests/test_integration.py) (integration).
 
 **Run locally:**  
 `pytest tests/ -v --cov=src --cov-report=term-missing` and `mypy src/`  
@@ -263,11 +268,12 @@ Use this table to jump straight to the file that implements each piece.
 | Security workflow (pip-audit, Gitleaks, path filters, concurrency, summary) | [.github/workflows/security.yml](.github/workflows/security.yml) |
 | Build workflow (build, path filters, concurrency, grouping, summary) | [.github/workflows/build.yml](.github/workflows/build.yml) |
 | Ruff rules and options | [pyproject.toml](pyproject.toml) (sections `[tool.ruff]`, `[tool.ruff.lint]`) |
+| Lint level and test profile (no YAML edit) | [config/lint-level.txt](config/lint-level.txt), [config/test-profile.txt](config/test-profile.txt); [config/README.md](config/README.md) |
 | Pytest and mypy config | [pyproject.toml](pyproject.toml) (sections `[tool.pytest.ini_options]`, `[tool.mypy]`) |
 | Build system and package layout | [pyproject.toml](pyproject.toml) (`[build-system]`, `[tool.setuptools.packages.find]`) |
 | Pre-commit hooks | [.pre-commit-config.yaml](.pre-commit-config.yaml) |
 | Dependabot | [.github/dependabot.yml](.github/dependabot.yml) |
-| Example tests | [tests/test_logic.py](tests/test_logic.py), [tests/conftest.py](tests/conftest.py) |
+| Example tests | [tests/test_logic.py](tests/test_logic.py) (unit), [tests/test_integration.py](tests/test_integration.py) (integration), [tests/conftest.py](tests/conftest.py) |
 | Example “bad” module (for lint demos) | [src/example_package/module_with_issues.py](src/example_package/module_with_issues.py) (PLR0915); optional [module_other_violations.py](src/example_package/module_other_violations.py) (F401, N802, etc.) |
 | Example “good” module | [src/example_package/logic.py](src/example_package/logic.py), [src/example_package/__init__.py](src/example_package/__init__.py) |
 | How to contribute and run checks | [CONTRIBUTING.md](CONTRIBUTING.md) |

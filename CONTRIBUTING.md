@@ -30,6 +30,8 @@ This installs pytest, pytest-cov, ruff, and mypy (and any other base dependencie
 
 We use Ruff for both **linting** (rule violations) and **formatting** (style). The linter is configured to **not** auto-fix so that developers fix issues explicitly.
 
+**Lint level** is read from **`config/lint-level.txt`** (or set when you run the Lint workflow manually). Allowed values: `minimal` (E9,F only), `standard` (default; full rule set in pyproject.toml), `strict` (standard + more Pylint rules). See [config/README.md](config/README.md).
+
 ```bash
 # Lint: report issues only; exits non-zero if there are violations
 ruff check . --no-fix
@@ -56,8 +58,15 @@ Fix any reported type errors (or add type: ignore with a comment if there is a k
 
 ### 4. Tests and coverage
 
+**Test profile** is read from **`config/test-profile.txt`**: `unit` (only `@pytest.mark.unit`), `integration` (only `@pytest.mark.integration`), or `all` (no filter). See [config/README.md](config/README.md).
+
 ```bash
+# Run all tests (default)
 pytest tests/ -v --cov=src --cov-report=term-missing
+
+# Run only unit or only integration (match CI when profile is set)
+PROFILE=$(cat config/test-profile.txt 2>/dev/null | head -1 || echo all)
+pytest tests/ -v -m "$PROFILE" --cov=src --cov-report=term-missing
 ```
 
 All tests must pass. Coverage is reported in the terminal; we do not enforce a minimum coverage threshold in this demo, but you can set `--cov-fail-under=80` (or similar) in CI if you want to enforce it.
@@ -116,8 +125,9 @@ To enforce that nothing lands without passing CI:
 
 - Place test modules under **`tests/`** and name them **`test_*.py`** so pytest discovers them automatically.
 - Use **`test_`** as the prefix for test functions (e.g. `test_add_returns_sum`).
+- Mark tests with **`@pytest.mark.unit`** (fast, isolated) or **`@pytest.mark.integration`** (package import, multi-step) so CI can run by profile (`config/test-profile.txt`: unit | integration | all).
 - Prefer **one logical assertion per test** where possible; use parametrize or multiple assertions when it makes sense.
-- See **`tests/test_logic.py`** for the pattern used in this repo.
+- See **`tests/test_logic.py`** (unit) and **`tests/test_integration.py`** (integration) for the pattern used in this repo.
 
 ---
 
@@ -132,7 +142,7 @@ To enforce that nothing lands without passing CI:
 ## Code style and conventions
 
 - **Formatting:** Ruff format (line length 88, double quotes, etc.). Run `ruff format .` before committing.
-- **Lint rules:** Configured in **`pyproject.toml`** under `[tool.ruff.lint]`. Do not disable rules without a comment explaining why.
+- **Lint rules:** Configured in **`pyproject.toml`** under `[tool.ruff.lint]`. Override which rules run in CI by editing **`config/lint-level.txt`** (`minimal` | `standard` | `strict`). Do not disable rules without a comment explaining why.
 - **Naming:** Use **snake_case** for functions and variables (enforced by Ruff pep8-naming, N8).
 - **Comments:** This repo uses **verbose comments** for teaching: block comments at the start of sections or ideas, inline comments for non-obvious lines or list items.
 

@@ -19,6 +19,11 @@ This repository demonstrates **industry-standard CI/CD practices** for a Python 
 
 ## Quick start
 
+### Configure what runs (easiest)
+
+- **Lint level:** Edit **`config/lint-level.txt`** — set the first line to `minimal`, `standard`, or `strict`. The next Lint run uses that rule set. No YAML changes.
+- **Tests:** Edit **`config/test-profile.txt`** — set to `unit`, `integration`, or `all`. The next CI run runs only those tests. See [config/README.md](config/README.md).
+
 ### Run lint locally
 
 ```bash
@@ -67,6 +72,8 @@ All workflows run on **push** and **pull_request** to `main` and `master`. Each 
 | **CD**    | `cd.yml`       | Matrix over Python × OS × dependency-set; deployment check; optional GPU job; pip cache. |
 | **Security** | `security.yml` | pip-audit (dependency vulnerabilities); Gitleaks (secret scanning). |
 | **Build** | `build.yml`    | `python -m build` (sdist + wheel); upload dist as artifact. |
+
+Lint level and test profile are configurable via **`config/lint-level.txt`** and **`config/test-profile.txt`**; see [config/README.md](config/README.md). You can also run the Lint or CI workflow manually (Actions → Lint or CI → Run workflow) and choose a level or profile for that run only.
 
 Workflows only run when **relevant files** change (path filters) and **cancel** previous runs on the same branch (concurrency). See [LEARNING.md — Speeding up workflows](LEARNING.md#speeding-up-workflows) and [LEARNING.md — Progress reporting](LEARNING.md#progress-reporting-for-developers).
 
@@ -144,6 +151,10 @@ The lint workflow runs `ruff check . --no-fix`. Ruff exits with a non-zero code 
 .github/
   workflows/       lint.yml, ci.yml, cd.yml, security.yml, build.yml
   dependabot.yml   Automated dependency and action updates
+config/
+  lint-level.txt   Lint level for Lint workflow: minimal | standard | strict
+  test-profile.txt Test profile for CI: unit | integration | all
+  README.md        How to configure lint level and test profile
 .pre-commit-config.yaml   Hooks for lint/format before commit
 src/example_package/   __init__.py, logic.py, module_with_issues.py
 tests/                 test_logic.py, conftest.py

@@ -1,10 +1,9 @@
 # =============================================================================
 # CI workflow: tests with coverage, type checking (mypy)
 # =============================================================================
-# Purpose: On every relevant push/PR, run tests (pytest-cov) and mypy so the
-# main branch stays green and type-safe. Path filters limit runs to Python,
-# requirements, pyproject, tests; concurrency cancels outdated runs. We use
-# pip cache and write job summary + log grouping for progress reporting.
+# Purpose: On every relevant push/PR, run tests (pytest-cov) and mypy. Test
+# profile is configurable via config/test-profile.txt (unit | integration | all)
+# or via manual run "Test profile" input. Path filters and concurrency as before.
 # =============================================================================
 
 name: CI
@@ -17,6 +16,7 @@ on:
       - "requirements/**"
       - "pyproject.toml"
       - "tests/**"
+      - "config/test-profile.txt"
       - ".github/workflows/ci.yml"
   pull_request:
     branches: [main, master]
@@ -25,7 +25,19 @@ on:
       - "requirements/**"
       - "pyproject.toml"
       - "tests/**"
+      - "config/test-profile.txt"
       - ".github/workflows/ci.yml"
+  workflow_dispatch:
+    inputs:
+      test_profile:
+        description: "Test profile (overrides config/test-profile.txt for this run)"
+        required: false
+        default: "all"
+        type: choice
+        options:
+          - unit
+          - integration
+          - all
 
 jobs:
   test:
@@ -43,6 +55,17 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Resolve test profile
+        id: test-profile
+        run: |
+          if [ -n "${{ github.event.inputs.test_profile }}" ]; then
+            echo "profile=${{ github.event.inputs.test_profile }}" >> $GITHUB_OUTPUT
+          else
+            PROFILE=$(cat config/test-profile.txt 2>/dev/null | head -1 | tr -d '[:space:]' || true)
+            echo "profile=${PROFILE:-all}" >> $GITHUB_OUTPUT
+          fi
+          echo "Resolved test profile: $(grep '^profile=' $GITHUB_OUTPUT | cut -d= -f2-)"
+
       - name: Cache pip
         uses: actions/cache@v4
         with:
@@ -53,14 +76,19 @@ jobs:
         run: pip install -r requirements/base.txt
 
       # -----------------------------------------------------------------------
-      # Run tests with coverage; upload artifact; add to job summary
+      # Pytest: -m unit, -m integration, or no -m (all) per profile
       # -----------------------------------------------------------------------
       - name: Run tests with coverage
         run: |
-          echo "::group::Pytest output"
-          pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml
+          PROFILE="${{ steps.test-profile.outputs.profile }}"
+          echo "::group::Pytest output ($PROFILE)"
+          if [ "$PROFILE" = "all" ]; then
+            pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml
+          else
+            pytest tests/ -v -m "$PROFILE" --cov=src --cov-report=term-missing --cov-report=xml
+          fi
           echo "::endgroup::"
-          echo "## Test results" >> $GITHUB_STEP_SUMMARY
+          echo "## Test results ($PROFILE)" >> $GITHUB_STEP_SUMMARY
           echo "Pytest with coverage completed." >> $GITHUB_STEP_SUMMARY
 
       - name: Upload coverage artifact
