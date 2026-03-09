@@ -1,0 +1,19 @@
+# Ensure .github/ is always tracked (workflows and dependabot).
+# If GitHub Desktop or git still ignores it, remove ".github" from your
+# global gitignore (git config --global core.excludesfile) or run: git add -f .github/
+!.github/
+!.github/**
+
+# Common Python / build artifacts (optional)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.coverage
+htmlcov/
+.ruff_cache/

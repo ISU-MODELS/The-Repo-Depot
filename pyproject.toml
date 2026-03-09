@@ -57,6 +57,7 @@ exclude = [
     "dist",
     ".venv",
     "venv",
+    "**/module_other_violations.py",  # optional Stage 2 demo; remove to show F401, N802, etc.
 ]
 
 [tool.ruff.lint]

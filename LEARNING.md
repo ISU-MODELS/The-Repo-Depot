@@ -137,7 +137,7 @@ Below, each principle is explained and linked to the exact files and sections th
 | Naming (e.g. snake_case) | [pyproject.toml — select N8](pyproject.toml) | Same as above |
 | Redundant code (unused import, commented code, etc.) | [pyproject.toml — F401, ERA001, B018, B019, etc.](pyproject.toml) | Same as above |
 
-**Example of code that fails lint (for teaching):** [module_with_issues.py](src/example_package/module_with_issues.py) — intentionally violates N802, N806, F401, ERA001, PLR0915, etc.
+**Example of code that fails lint (for teaching):** [module_with_issues.py](src/example_package/module_with_issues.py) — intentionally violates **PLR0915** (too many statements). See [TEACHING_PROCEDURE.md](TEACHING_PROCEDURE.md) for a step-by-step lesson. Optional file [module_other_violations.py](src/example_package/module_other_violations.py) demonstrates F401, N802, N806, ERA001, B018 (excluded from Ruff by default).
 
 **Example of clean code:** [logic.py](src/example_package/logic.py).
 
@@ -268,7 +268,7 @@ Use this table to jump straight to the file that implements each piece.
 | Pre-commit hooks | [.pre-commit-config.yaml](.pre-commit-config.yaml) |
 | Dependabot | [.github/dependabot.yml](.github/dependabot.yml) |
 | Example tests | [tests/test_logic.py](tests/test_logic.py), [tests/conftest.py](tests/conftest.py) |
-| Example “bad” module (for lint demos) | [src/example_package/module_with_issues.py](src/example_package/module_with_issues.py) |
+| Example “bad” module (for lint demos) | [src/example_package/module_with_issues.py](src/example_package/module_with_issues.py) (PLR0915); optional [module_other_violations.py](src/example_package/module_other_violations.py) (F401, N802, etc.) |
 | Example “good” module | [src/example_package/logic.py](src/example_package/logic.py), [src/example_package/__init__.py](src/example_package/__init__.py) |
 | How to contribute and run checks | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | High-level README | [README.md](README.md) |

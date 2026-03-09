@@ -2,7 +2,7 @@
 
 This repository demonstrates **industry-standard CI/CD practices** for a Python project. It is intended for **teaching**: workflows and config files include verbose comments explaining *why* each step exists and how to extend or adapt it.
 
-**New to this repo?** Start with the **[Learning guide (LEARNING.md)](LEARNING.md)** — an interactive overview that links to each workflow, config file, and code example, and explains how we speed up runs and improve progress reporting.
+**New to this repo?** Start with the **[Learning guide (LEARNING.md)](LEARNING.md)** — an interactive overview that links to each workflow, config file, and code example — and **[Teaching procedure (TEACHING_PROCEDURE.md)](TEACHING_PROCEDURE.md)** for a step-by-step lesson plan (Ruff first fails on “too many statements,” then optional other rules).
 
 ## What this repo demonstrates
 
@@ -91,7 +91,7 @@ See [tests/test_logic.py](tests/test_logic.py) for two example tests and a short
 
 ## Example code that triggers lint
 
-[`src/example_package/module_with_issues.py`](src/example_package/module_with_issues.py) is **intentionally** written to violate several Ruff rules (N802, N806, F401, ERA001, PLR0915, etc.) so that `ruff check . --no-fix` fails. Use it to see what the linter reports. Fix or exclude that file to get a passing lint run.
+[`src/example_package/module_with_issues.py`](src/example_package/module_with_issues.py) is **intentionally** written to violate **PLR0915** (too many statements; max 25) so that `ruff check . --no-fix` fails. Use it to see the linter report. Fix the function or exclude that file to get a passing lint run. For a step-by-step teaching procedure, see [TEACHING_PROCEDURE.md](TEACHING_PROCEDURE.md). Optional violations (F401, N802, etc.) are in [`module_other_violations.py`](src/example_package/module_other_violations.py), excluded from Ruff by default until you want to teach them.
 
 ---
 
@@ -152,6 +152,7 @@ pyproject.toml         Build, Ruff, pytest, mypy config
 LICENSE                MIT
 CONTRIBUTING.md        How to run checks and open PRs
 LEARNING.md            Interactive learning guide (links to all principles and code)
+TEACHING_PROCEDURE.md  Step-by-step teaching procedure (Ruff PLR0915 first, then optional rules)
 README.md              This file
 ```
 
