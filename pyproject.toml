@@ -27,14 +27,14 @@ dependencies = []
 min = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
-    "ruff>=0.1.0",
+    "ruff>=0.15.10",
     "mypy>=1.0",
 ]
 # pinned: exact versions for reproducible builds (used in CD matrix "pinned")
 pinned = [
     "pytest==7.4.3",
     "pytest-cov==4.1.0",
-    "ruff==0.4.4",
+    "ruff==0.15.10",
     "mypy==1.8.0",
 ]
 
