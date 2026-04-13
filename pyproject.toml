@@ -10,7 +10,7 @@
 # Build backend: setuptools with PEP 517. "build" and "pip install ." use this.
 # requires: packages needed to build; build-backend: module that performs build.
 # -----------------------------------------------------------------------------
-requires = ["setuptools>=61", "wheel"]
+requires = ["setuptools>=82.0.1", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
